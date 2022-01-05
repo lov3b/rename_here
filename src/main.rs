@@ -23,23 +23,21 @@ fn main() {
     for i in entries.map(|e| e.unwrap()).into_iter() {
         let current_name = i.file_name().into_string().unwrap();
 
-        // If file does not match given resolution, keep on going
+        // If file does not match given resolution, skip
         if !current_name.contains(&resolution) {
-            //println!("skip: {}", &current_name);
             continue;
         }
 
-        println!("original filename: '{}'", &current_name);
         let mut name_to_be = current_name.clone();
         name_to_be = name_to_be.split_once(&resolution).unwrap().0.to_string();
 
         // Remove last character, which will be a dot
         let name_to_be: String = name_to_be.chars().take(&name_to_be.len() - 1).collect();
 
+        // Counts
         let dots = name_to_be.chars().filter(|x| x == &'.').count() - 1;
-        println!("dots: {}", &dots);
-
         let mut counter: usize = 0;
+
         let mut name_to_be: String = name_to_be
             .chars()
             .map(|x| {
@@ -61,11 +59,10 @@ fn main() {
         }
         name_to_be = name_to_be.replace(".", " ");
 
-        println!("'{}'", &name_to_be);
-
         let here = env::current_dir().unwrap();
         let mut current = PathBuf::from(&here);
         let mut to = PathBuf::from(&here);
+
         current.push(&current_name);
         to.push(&name_to_be.replace(" ", " "));
 
