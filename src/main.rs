@@ -93,13 +93,34 @@ fn main() {
 
     // Print amount of changed files for satisfaction
     if &rename_counter == &1 {
-        println!("renamed {}", renamed_files[0]);
+        println!(
+            "{} {}",
+            if opt.dry_mode {
+                "Would had renamed"
+            } else {
+                "renamed"
+            },
+            renamed_files[0]
+        );
+    } else if rename_counter == 0 {
+        // print different depending on if it is debug or not
+        println!(
+            "{} rename any files",
+            if opt.dry_mode { "Wouldn't" } else { "Didn't" }
+        );
     } else {
-        println!("Renamed following files");
+        // print different depending on if it is debug or not
+        let debug_print: [&str; 2] = if opt.dry_mode {
+            ["Would had renamed", "is"]
+        } else {
+            ["Renamed", "was"]
+        };
+
+        println!("{} following files", &debug_print[0]);
         for i in renamed_files {
             println!("{}", &i);
         }
-        println!("which was {} files", &rename_counter);
+        println!("which {} {} files", &debug_print[1], &rename_counter);
     }
 }
 
