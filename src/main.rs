@@ -1,18 +1,10 @@
 use std::env;
 use std::fs;
-use std::fs::ReadDir;
-use std::io;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
 fn main() {
     let opt = Opt::from_args();
-    let resolution = opt.resolution;
-    let season_before_res = opt.season_before_res;
-    let dry_mode = opt.dry_mode;
-    //let resolution = "1080p".to_string();
-    //let season_before_res = true;
-    //let dry_mode = false;
 
     let mut renamed_files: Vec<String> = Vec::new();
     let mut rename_counter: usize = 0;
@@ -23,13 +15,33 @@ fn main() {
     for i in entries.map(|e| e.unwrap()).into_iter() {
         let current_name = i.file_name().into_string().unwrap();
 
+        // If whitelist is enabled and the following iteration does not match the
+        // whitelist, skip
+        if let Some(whitelist) = &opt.whitelist {
+            if !current_name.contains(whitelist) {
+                continue;
+            }
+        }
+
+        // If blacklist is enabled and the following iteration matches the
+        // blacklist, skip
+        if let Some(blacklist) = &opt.blacklist {
+            if current_name.contains(blacklist) {
+                continue;
+            }
+        }
+
         // If file does not match given resolution, skip
-        if !current_name.contains(&resolution) {
+        if !current_name.contains(&opt.resolution) {
             continue;
         }
 
         let mut name_to_be = current_name.clone();
-        name_to_be = name_to_be.split_once(&resolution).unwrap().0.to_string();
+        name_to_be = name_to_be
+            .split_once(&opt.resolution)
+            .unwrap()
+            .0
+            .to_string();
 
         // Remove last character, which will be a dot
         let name_to_be: String = name_to_be.chars().take(&name_to_be.len() - 1).collect();
@@ -52,10 +64,10 @@ fn main() {
             .collect::<String>();
 
         // If season is before resolution
-        if season_before_res {
+        if opt.season_before_res {
             name_to_be = name_to_be.replace(":", "꞉ "); // This is not a regular colon
         } else {
-            name_to_be = name_to_be.replace(":", "꞉"); // This is not a regular colon
+            name_to_be = name_to_be.replace(":", " ");
         }
         name_to_be = name_to_be.replace(".", " ");
 
@@ -66,7 +78,7 @@ fn main() {
         current.push(&current_name);
         to.push(&name_to_be.replace(" ", " "));
 
-        if !dry_mode {
+        if !opt.dry_mode {
             match fs::rename(&current, &to) {
                 Ok(k) => k,
                 Err(e) => {
@@ -92,7 +104,7 @@ fn main() {
 }
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "episodeat")]
+#[structopt(name = "rename_here")]
 struct Opt {
     // A flag, true if used in the command line. Note doc comment will
     // be used for the help message of the flag. The name of the
@@ -108,4 +120,12 @@ struct Opt {
     /// Do not rename anything
     #[structopt(short, long)]
     dry_mode: bool,
+
+    /// Whitelist entries
+    #[structopt(short, long)]
+    whitelist: Option<String>,
+
+    /// Blacklist entries
+    #[structopt(short, long)]
+    blacklist: Option<String>,
 }
