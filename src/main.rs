@@ -3,6 +3,21 @@ use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+fn ending(file_name: &String) -> String {
+    let chars = file_name.chars().rev();
+    let mut name = String::new();
+
+    for c in chars {
+        name.push(c);
+        if c == '.' {
+            break;
+        }
+    }
+
+    name.chars().rev().collect::<String>()
+}
+
+// Example file name: Kingsman.The.Secret.Service.2014.UNCUT.1080p.BluRay.x265-RARBG.mp4
 fn main() {
     let opt = Opt::from_args();
 
@@ -44,39 +59,61 @@ fn main() {
             .to_string();
 
         // Remove last character, which will be a dot
-        let name_to_be: String = name_to_be.chars().take(&name_to_be.len() - 1).collect();
+        // Check if there is any dots first, if not, the program have probably already ran
+        if name_to_be.contains('.') {
+            name_to_be.remove(&name_to_be.len() - 1);
+        }
 
-        // Counts
-        let dots = name_to_be.chars().filter(|x| x == &'.').count() - 1;
-        let mut counter: usize = 0;
-
-        let mut name_to_be: String = name_to_be
-            .chars()
-            .map(|x| {
-                if x == '.' {
-                    if counter == dots {
-                        return ':';
-                    }
-                    counter += 1;
-                }
-                x
-            })
-            .collect::<String>();
-
-        // If season is before resolution
+        // Add ꞉ before the episode numbering
+        let mut name_to_be = String::new();
         if opt.season_before_res {
-            name_to_be = name_to_be.replace(":", "꞉ "); // This is not a regular colon
-        } else {
-            name_to_be = name_to_be.replace(":", " ");
+            // Counts
+            let mut dots: isize = name_to_be.chars().filter(|x| x == &'.').count() as isize - 1;
+            dots = if dots == 0 { std::isize::MAX } else { dots };
+            let mut counter: usize = 0;
+
+            let soon_name_to_be: String = name_to_be
+                .chars()
+                .map(|x| {
+                    if x == '.' {
+                        if counter as isize == dots {
+                            return ':';
+                        }
+                        counter += 1;
+                    }
+                    x
+                })
+                .collect::<String>();
+
+            name_to_be = soon_name_to_be.replace(":", "꞉ "); // This is not a regular colon
         }
         name_to_be = name_to_be.replace(".", " ");
+        // Remove any trailing space that might be
+        if name_to_be.ends_with(' ') {
+            name_to_be.pop();
+        }
 
-        let here = env::current_dir().unwrap();
+        // Set file ending if it is a file
+        if let Ok(file_type) = i.file_type() {
+            if file_type.is_file() {
+                let end = ending(&current_name);
+                name_to_be.extend(end.chars());
+            }
+        }
+
+        // Get working dir
+        let here = match env::current_dir() {
+            Ok(k) => k,
+            Err(e) => {
+                println!("Could not get current working directory {:?}", e);
+                std::process::exit(1)
+            }
+        };
         let mut current = PathBuf::from(&here);
         let mut to = PathBuf::from(&here);
 
         current.push(&current_name);
-        to.push(&name_to_be.replace(" ", " "));
+        to.push(&name_to_be);
 
         if !opt.dry_mode {
             match fs::rename(&current, &to) {
@@ -90,12 +127,15 @@ fn main() {
         rename_counter += 1;
         renamed_files.push(name_to_be);
     }
+    print_success(rename_counter, renamed_files, opt.dry_mode);
+}
 
+fn print_success(rename_counter: usize, renamed_files: Vec<String>, dry_mode: bool) {
     // Print amount of changed files for satisfaction
     if &rename_counter == &1 {
         println!(
             "{} {}",
-            if opt.dry_mode {
+            if dry_mode {
                 "Would had renamed"
             } else {
                 "renamed"
@@ -106,11 +146,11 @@ fn main() {
         // print different depending on if it is debug or not
         println!(
             "{} rename any files",
-            if opt.dry_mode { "Wouldn't" } else { "Didn't" }
+            if dry_mode { "Wouldn't" } else { "Didn't" }
         );
     } else {
         // print different depending on if it is debug or not
-        let debug_print: [&str; 2] = if opt.dry_mode {
+        let debug_print: [&str; 2] = if dry_mode {
             ["Would had renamed", "is"]
         } else {
             ["Renamed", "was"]
