@@ -52,20 +52,22 @@ fn main() {
         }
 
         let mut name_to_be = current_name.clone();
+        println!("name_to_be: {}, current_name: {}",&name_to_be, &current_name);
         name_to_be = name_to_be
             .split_once(&opt.resolution)
             .unwrap()
             .0
             .to_string();
+        println!("name_to_be: {}, current_name: {}",&name_to_be, &current_name);
 
         // Remove last character, which will be a dot
         // Check if there is any dots first, if not, the program have probably already ran
         if name_to_be.contains('.') {
             name_to_be.remove(&name_to_be.len() - 1);
         }
+        println!("name_to_be: {}, current_name: {}",&name_to_be, &current_name);
 
         // Add ꞉ before the episode numbering
-        let mut name_to_be = String::new();
         if opt.season_before_res {
             // Counts
             let mut dots: isize = name_to_be.chars().filter(|x| x == &'.').count() as isize - 1;
@@ -87,11 +89,14 @@ fn main() {
 
             name_to_be = soon_name_to_be.replace(":", "꞉ "); // This is not a regular colon
         }
+        println!("name_to_be: {}, current_name: {}",&name_to_be, &current_name);
         name_to_be = name_to_be.replace(".", " ");
+        println!("name_to_be: {}, current_name: {}",&name_to_be, &current_name);
         // Remove any trailing space that might be
         if name_to_be.ends_with(' ') {
             name_to_be.pop();
         }
+        println!("name_to_be: {}, current_name: {}",&name_to_be, &current_name);
 
         // Set file ending if it is a file
         if let Ok(file_type) = i.file_type() {
@@ -100,6 +105,7 @@ fn main() {
                 name_to_be.extend(end.chars());
             }
         }
+        println!("name_to_be: {}, current_name: {}",&name_to_be, &current_name);
 
         // Get working dir
         let here = match env::current_dir() {
@@ -123,6 +129,7 @@ fn main() {
                 }
             };
         }
+        println!("name_to_be: {}, current_name: {}",&name_to_be, &current_name);
 
         rename_counter += 1;
         renamed_files.push(name_to_be);
