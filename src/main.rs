@@ -66,26 +66,9 @@ fn main() {
 
         // Add ꞉ before the episode numbering
         if opt.season_before_res {
-            // Counts
-            let mut dots: isize = name_to_be.chars().filter(|x| x == &'.').count() as isize - 1;
-            dots = if dots == 0 { std::isize::MAX } else { dots };
-            let mut counter: usize = 0;
-
-            let soon_name_to_be: String = name_to_be
-                .chars()
-                .map(|x| {
-                    if x == '.' {
-                        if counter as isize == dots {
-                            return ':';
-                        }
-                        counter += 1;
-                    }
-                    x
-                })
-                .collect::<String>();
-
-            name_to_be = soon_name_to_be.replace(":", "꞉ "); // This is not a regular colon
+            colon_before_numbering(&mut name_to_be);
         }
+
         name_to_be = name_to_be.replace(".", " ");
         // Remove any trailing space that might be
         if name_to_be.ends_with(' ') {
@@ -127,6 +110,27 @@ fn main() {
         renamed_files.push(name_to_be);
     }
     print_success(rename_counter, renamed_files, opt.dry_mode);
+}
+
+fn colon_before_numbering(name_to_be: &mut String) {
+    // Counts
+    let mut dots: isize = name_to_be.chars().filter(|x| x == &'.').count() as isize - 1;
+    dots = if dots == 0 { std::isize::MAX } else { dots };
+    let mut counter: usize = 0;
+
+    *name_to_be = name_to_be
+        .chars()
+        .map(|x| {
+            if x == '.' {
+                if counter as isize == dots {
+                    return ':';
+                }
+                counter += 1;
+            }
+            x
+        })
+        .collect::<String>()
+        .replace(":", "꞉ "); // This is not a regular colon
 }
 
 fn print_success(rename_counter: usize, renamed_files: Vec<String>, dry_mode: bool) {
