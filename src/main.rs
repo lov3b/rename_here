@@ -3,20 +3,6 @@ use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
-fn ending(file_name: &String) -> String {
-    let chars = file_name.chars().rev();
-    let mut name = String::new();
-
-    for c in chars {
-        name.push(c);
-        if c == '.' {
-            break;
-        }
-    }
-
-    name.chars().rev().collect::<String>()
-}
-
 // Example file name: Kingsman.The.Secret.Service.2014.UNCUT.1080p.BluRay.x265-RARBG.mp4
 fn main() {
     let opt = Opt::from_args();
@@ -131,6 +117,21 @@ fn colon_before_numbering(name_to_be: &mut String) {
         })
         .collect::<String>()
         .replace(":", "꞉ "); // This is not a regular colon
+}
+
+// Get file-ending from file name
+fn ending(file_name: &String) -> String {
+    let chars = file_name.chars().rev();
+    let mut name = String::new();
+
+    for c in chars {
+        name.push(c);
+        if c == '.' {
+            break;
+        }
+    }
+
+    name.chars().rev().collect::<String>()
 }
 
 fn print_success(rename_counter: usize, renamed_files: Vec<String>, dry_mode: bool) {
