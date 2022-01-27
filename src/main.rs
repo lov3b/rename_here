@@ -37,7 +37,7 @@ fn main() {
             continue;
         }
 
-        let mut name_to_be = current_name.clone();
+        let mut name_to_be: String = current_name.clone();
         name_to_be = name_to_be
             .split_once(&opt.resolution)
             .unwrap()
