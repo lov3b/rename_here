@@ -85,7 +85,7 @@ fn main() {
 
         if !opt.dry_mode {
             match fs::rename(&current, &to) {
-                Ok(k) => k,
+                Ok(_) => {}
                 Err(e) => {
                     println!("could not rename {}, \n{:?}", &current_name, &e)
                 }
